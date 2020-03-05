@@ -1,0 +1,45 @@
+version: "3.4"
+
+services:
+  server:
+    build:
+      context: .
+      target: backend
+    environment:
+      DATABASE_URL: postgresqlext://postgres:pass@db/postgres
+    volumes:
+    - $PWD:/app
+    depends_on:
+    - db
+    links:
+    - db
+    command: /bin/bash
+
+  pgrst:
+    image: postgrest/postgrest
+    ports:
+      - "3000:3000"
+    links:
+      - db:db
+    environment:
+      PGRST_DB_URI: postgres://postgres:pass@db:5432/postgres
+      PGRST_DB_SCHEMA: public
+      # In production this role should not be the same as the one used for the connection.
+      PGRST_DB_ANON_ROLE: web_anon
+    depends_on:
+      - db
+
+  # Swagger is used only for local testing of the API.
+  swagger:
+    image: swaggerapi/swagger-ui
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+    environment:
+      API_URL: http://localhost:3000/
+
+  db:
+    image: postgres:11
+    environment:
+      POSTGRES_PASSWORD: pass

@@ -1,9 +1,13 @@
 import datetime
 
 from mozilla_schema_generator.glean_ping import GleanPing
+from mozilla_schema_generator.main_ping import MainPing
 from peewee import EXCLUDED, chunked, fn
 
 from probe_search.db import Probes, db
+
+
+GLEAN_PRODUCTS = ["fenix"]
 
 
 def log(message):
@@ -15,12 +19,7 @@ def log(message):
     )
 
 
-def import_probes(product):
-    log(f"Importing probes for product: {product}")
-    log("Fetching probes.")
-    probes = GleanPing(product).get_probes()
-    log("Gathered {n:,} probes.".format(n=len(probes)))
-
+def import_probes(product, probes):
     log("Batch updating probes to the database.")
     data = []
     for probe in probes:
@@ -56,4 +55,17 @@ def import_probes(product):
 
 
 if __name__ == "__main__":
-    import_probes("fenix")
+    # Import telemetry pings
+    log("Importing probes for desktop.")
+    log("Fetching probes.")
+    probes = MainPing().get_probes()
+    log("Gathered {n:,} probes.".format(n=len(probes)))
+    import_probes("desktop", probes)
+
+    # Import Glean pings
+    for product in GLEAN_PRODUCTS:
+        log(f"Importing probes for product: {product}")
+        log("Fetching probes.")
+        probes = GleanPing(product).get_probes()
+        log("Gathered {n:,} probes.".format(n=len(probes)))
+        import_probes(product, probes)

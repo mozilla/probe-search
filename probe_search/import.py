@@ -7,9 +7,6 @@ from peewee import EXCLUDED, chunked, fn
 from probe_search.db import Probes, db
 
 
-GLEAN_PRODUCTS = ["fenix"]
-
-
 def log(message):
     print(
         "{stamp} - {message}".format(
@@ -63,7 +60,8 @@ if __name__ == "__main__":
     import_probes("desktop", probes)
 
     # Import Glean pings
-    for product in GLEAN_PRODUCTS:
+    glean_products = [repo[0] for repo in GleanPing.get_repos()]
+    for product in glean_products:
         log(f"Importing probes for product: {product}")
         log("Fetching probes.")
         probes = GleanPing(product).get_probes()

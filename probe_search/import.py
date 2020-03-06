@@ -17,7 +17,6 @@ def log(message):
 
 
 def import_probes(product, probes):
-    log("Batch updating probes to the database.")
     data = []
     for probe in probes:
         definition = probe.definition
@@ -48,22 +47,15 @@ def import_probes(product, probes):
                 )
                 .execute()
             )
-    log("Batch update completed.")
+    log("Imported {n:,} probes for {product}".format(n=len(probes), product=product))
 
 
 if __name__ == "__main__":
+    log("Starting imports...")
     # Import telemetry pings
-    log("Importing probes for desktop.")
-    log("Fetching probes.")
-    probes = MainPing().get_probes()
-    log("Gathered {n:,} probes.".format(n=len(probes)))
-    import_probes("desktop", probes)
+    import_probes("desktop", MainPing().get_probes())
 
     # Import Glean pings
     glean_products = [repo[0] for repo in GleanPing.get_repos()]
     for product in glean_products:
-        log(f"Importing probes for product: {product}")
-        log("Fetching probes.")
-        probes = GleanPing(product).get_probes()
-        log("Gathered {n:,} probes.".format(n=len(probes)))
-        import_probes(product, probes)
+        import_probes(product, GleanPing(product).get_probes())

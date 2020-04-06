@@ -25,7 +25,7 @@ RUN pip install -U pip \
 # END: BUILD IMAGE
 
 # BEGIN: FINAL IMAGE
-FROM python-3.8-slim AS final
+FROM python:3.8-slim AS final
 WORKDIR /app
 COPY --from=backend /venv/ /venv/
 CMD ["python", "-m", "probe_search.import"]

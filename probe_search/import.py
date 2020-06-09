@@ -5,6 +5,7 @@ from mozilla_schema_generator.main_ping import MainPing
 from peewee import EXCLUDED, chunked, fn
 
 from probe_search.db import Probes, db
+from probe_search.utils import snake_case
 
 
 def log(message):
@@ -25,7 +26,7 @@ def import_probes(product, probes):
         data.append(
             {
                 "product": product,
-                "name": probe.name,
+                "name": snake_case(probe.name),
                 "type": probe.type,
                 "description": description,
                 "definition": definition,

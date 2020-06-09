@@ -2,7 +2,7 @@ import functools
 import json
 import os
 
-from peewee import CharField, Model, TextField, ProgrammingError
+from peewee import CharField, Model, TextField
 from playhouse.db_url import connect
 from playhouse.postgres_ext import JSONField, TSVectorField
 
@@ -31,17 +31,3 @@ class Probes(Model):
     class Meta:
         database = db
         indexes = ((("product", "name"), True),)
-
-
-db.connect()
-# This is a no-op if the table already exists.
-db.create_tables([Probes])
-
-# These need to be run on first start, but they are allowed to fail if already run.
-try:
-    with db.atomic():
-        db.execute_sql("CREATE ROLE web_anon NOLOGIN")
-except ProgrammingError:
-    pass
-db.execute_sql("GRANT USAGE ON SCHEMA public TO web_anon")
-db.execute_sql("GRANT SELECT ON public.probes TO web_anon")

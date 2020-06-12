@@ -7,12 +7,14 @@ services:
       target: backend
     environment:
       DATABASE_URL: postgresqlext://postgres:pass@db/postgres
+      GOOGLE_CLOUD_PROJECT: moz-fx-data-prob-nonprod-c8d8
     volumes:
-    - $PWD:/app
+      - $PWD:/app
+      - ~/.config/gcloud:/root/.config/gcloud
     depends_on:
-    - db
+      - db
     links:
-    - db
+      - db
     command: /bin/bash
 
   pgrst:

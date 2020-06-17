@@ -1,9 +1,12 @@
 import datetime
+import gzip
+import json
+import urllib.request
+from collections import namedtuple
 
-from mozilla_schema_generator.glean_ping import GleanPing
-from mozilla_schema_generator.main_ping import MainPing
-from peewee import EXCLUDED, chunked, fn
 from google.cloud import bigquery
+from mozilla_schema_generator.glean_ping import GleanPing
+from peewee import EXCLUDED, chunked, fn
 
 from probe_search.db import Probes, db
 from probe_search.utils import snake_case
@@ -64,7 +67,7 @@ def import_probes(product, probes):
         definition = probe.definition
         if product == "desktop":
             definition["seen_in_processes"] = processes.get(name, [])
-        description = definition["description"]
+        description = definition.get("description") or probe.description
 
         data.append(
             {
@@ -94,10 +97,35 @@ def import_probes(product, probes):
     log("Imported {n:,} probes for {product}".format(n=len(probes), product=product))
 
 
+def fetch_desktop_probes():
+
+    PROBES_URL = "https://probeinfo.telemetry.mozilla.org/firefox/all/main/all_probes"
+    Probe = namedtuple("Probe", ["name", "type", "description", "definition"])
+    probes_dict = json.loads(gzip.decompress(urllib.request.urlopen(PROBES_URL).read()))
+
+    probes = []
+    for k, v in probes_dict.items():
+        description = (
+            v["history"].get("nightly") or
+            v["history"].get("beta") or
+            v["history"].get("release")
+        )[0]["description"]
+
+        probe = Probe(
+            name=v["name"],
+            type=v["type"],
+            description=description,
+            definition=v,
+        )
+        probes.append(probe)
+
+    return probes
+
+
 if __name__ == "__main__":
     log("Starting imports...")
-    # Import telemetry pings
-    import_probes("desktop", MainPing().get_probes())
+    # Import telemetry pings, pulled from probe info.
+    import_probes("desktop", fetch_desktop_probes())
 
     # Import Glean pings
     glean_products = [repo[0] for repo in GleanPing.get_repos()]

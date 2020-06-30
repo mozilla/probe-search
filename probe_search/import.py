@@ -59,15 +59,30 @@ def get_processes_per_probe():
 
 def import_probes(product, probes):
     data = []
+
     if product == "desktop":
         processes = get_processes_per_probe()
 
     for probe in probes:
         name = snake_case(probe.name)
         definition = probe.definition
+        description = definition.get("description")
+
         if product == "desktop":
-            definition["seen_in_processes"] = processes.get(name, [])
-        description = definition.get("description") or probe.description
+            history = (
+                definition["history"].get("nightly") or
+                definition["history"].get("beta") or
+                definition["history"].get("release")
+            )[0]
+
+            description = history.get("description")
+
+            # Add a calculated property for info we calculate from the probeinfo data.
+            calculated = {
+                "seen_in_processes": processes.get(name, []),
+                "details": history,
+            }
+            definition["calculated"] = calculated
 
         data.append(
             {
@@ -76,7 +91,7 @@ def import_probes(product, probes):
                 "type": probe.type,
                 "description": description,
                 "definition": definition,
-                "index": fn.to_tsvector("english", " ".join([probe.name, description])),
+                "index": fn.to_tsvector("english", " ".join([name, description])),
             }
         )
 
@@ -100,24 +115,14 @@ def import_probes(product, probes):
 def fetch_desktop_probes():
 
     PROBES_URL = "https://probeinfo.telemetry.mozilla.org/firefox/all/main/all_probes"
-    Probe = namedtuple("Probe", ["name", "type", "description", "definition"])
     probes_dict = json.loads(gzip.decompress(urllib.request.urlopen(PROBES_URL).read()))
 
-    probes = []
-    for k, v in probes_dict.items():
-        description = (
-            v["history"].get("nightly") or
-            v["history"].get("beta") or
-            v["history"].get("release")
-        )[0]["description"]
-
-        probe = Probe(
-            name=v["name"],
-            type=v["type"],
-            description=description,
-            definition=v,
-        )
-        probes.append(probe)
+    # Massage the JSON to look like the return value from schema-generator.
+    Probe = namedtuple("Probe", ["name", "type", "definition"])
+    probes = [
+        Probe(name=v["name"], type=v["type"], definition=v)
+        for k, v in probes_dict.items()
+    ]
 
     return probes
 

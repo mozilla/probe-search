@@ -1,4 +1,4 @@
-.PHONY: build shell dbshell import up
+.PHONY: build shell dbshell migrate import-telemetry import-glean up
 
 build:
 	docker-compose build
@@ -9,11 +9,14 @@ shell:
 dbshell:
 	docker-compose run --rm -e PGPASSWORD=pass server psql -h db -U postgres
 
-init:
-	docker-compose run --rm server python -m probe_search.initialize
+migrate:
+	docker-compose run --rm server python manage.py migrate probes
 
-import:
-	docker-compose run --rm server python -m probe_search.import
+import-telemetry:
+	docker-compose run --rm server python manage.py import_telemetry
+
+import-glean:
+	docker-compose run --rm server python manage.py import_glean
 
 up:
 	docker-compose up

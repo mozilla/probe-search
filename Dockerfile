@@ -28,6 +28,8 @@ RUN pip install -U pip \
 FROM python:3.8-slim AS final
 WORKDIR /app
 COPY --from=backend /venv/ /venv/
+COPY manage.py /app/manage.py
 COPY probe_search/ /app/probe_search/
-CMD ["/venv/bin/python", "-m", "probe_search.import"]
+COPY probes/ /app/probes/
+CMD ["/venv/bin/python", "manage.py", "migrate"]
 # END: FINAL IMAGE

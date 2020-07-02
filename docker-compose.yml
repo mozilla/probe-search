@@ -6,7 +6,8 @@ services:
       context: .
       target: backend
     environment:
-      DATABASE_URL: postgresqlext://postgres:pass@db/postgres
+      DATABASE_URL: postgres://postgres:pass@db/postgres
+      DJANGO_SECRET_KEY: secret
       GOOGLE_CLOUD_PROJECT: moz-fx-data-prob-nonprod-c8d8
     volumes:
       - $PWD:/app

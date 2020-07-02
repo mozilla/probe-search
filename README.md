@@ -5,13 +5,18 @@ database containing the telemetry and Glean probes.
 
 ## Setup
 
-To run locally using Docker and Docker compose, first initialize the database:
+To run locally using Docker and Docker compose, first build the Docker container:
 
-    make init
-    
-Then execute the probe import by running:
+    make build
 
-     make import
+Next, prepare the database by running the migrations:
+
+    make migrate
+
+Then execute the import script(s) by running either of the following, or both:
+
+     make import-telemetry
+     make import-glean
      
 To launch the API service run:
 
@@ -23,7 +28,7 @@ service.
 You can execute `curl` commands against the API. For example, to search for
 the desktop probes "GC_MS", try this command:
 
-    curl -X GET "http://0.0.0.0:3000/probes?select=name,definition&product=eq.desktop&or=(name.eq.gc_ms,index.fts(english).gc_ms)" -H "accept: application/json"
+    curl -X GET "http://0.0.0.0:3000/telemetry?select=name,description&product=eq.firefox&search=plfts(simple).gc_ms" -H "accept: application/json"
 
 The Docker Compose file also launches the Swagger UI to interact with the API
 in a web UI way. Visit the Swagger UI at: http://localhost:8080/

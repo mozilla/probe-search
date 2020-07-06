@@ -89,8 +89,6 @@ class Command(BaseCommand):
         For Firefox Desktop only.
 
         """
-        return {}
-
         bq = bigquery.Client()
 
         query = """

@@ -34,6 +34,7 @@ class Command(BaseCommand):
 
             # Add a calculated property for info we calculate from the probeinfo data.
             calculated = {
+                "active": name in processes,
                 "seen_in_processes": processes.get(name, []),
                 "latest_history": history,
             }

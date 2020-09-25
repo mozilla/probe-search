@@ -97,7 +97,7 @@ class Command(BaseCommand):
                 metric,
                 ARRAY_AGG(DISTINCT(process)) AS processes,
             FROM
-                `moz-fx-data-shared-prod.telemetry_derived.client_probe_counts_v1`
+                `moz-fx-data-shared-prod.telemetry.client_probe_counts`
             GROUP BY
                 metric
         """
